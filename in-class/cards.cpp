@@ -17,7 +17,7 @@ const string suit_names[] = {
 };
 // Each possibility must be an identifier (legit name)
 enum Rank {
-    TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN,
+    TWO = 2, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN,
     JACK, QUEEN, KING, ACE
 };
 // Array of rank names
