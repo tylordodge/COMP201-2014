@@ -1,10 +1,11 @@
 #include <iostream>
+#include <vector>
 #include <cstdlib>
 #include <ctime>
 
 using namespace std;
 
-enum State { FIRST, MATCH, NO_MATCH };
+enum State { INITIAL, FIRST, MATCH, NO_MATCH };
 
 // To clear the screen, look up ANSI escape codes
 // Concentration game model
@@ -27,9 +28,9 @@ public:
     void flip(int row, int column);
     // Is the game over?
     bool gameOver();
-private:
     // Is the row/column valid?
     bool valid(int row, int column);
+private:
     // Did the cell at current row/column match the cell at the last row/column 
     bool matched(int row, int column);
     // Fields (member data)
@@ -42,8 +43,8 @@ private:
     // What's the height?
     int height;
     // What'd we flip last?
-    int lastRow;
-    int lastColumn;
+    vector<int> lastRow;
+    vector<int> lastColumn;
     State state;
 };
 
@@ -76,9 +77,9 @@ private:
 Model::Model(int w, int h) {
     width = w;
     height = h;
-    lastRow = -1;
-    lastColumn = -1;
-    state = FIRST;
+    lastRow;
+    lastColumn;
+    state = INITIAL;
     grid = new char*[height];
     visible = new char*[height];
     // For every row, create the array for that row
@@ -92,11 +93,38 @@ Model::Model(int w, int h) {
     // Hint: insert characters in order, then shuffle later in a separate loop
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
-            grid[i][j] = 'a';
             // Everything's invisible at first
             visible[i][j] = '*';
         }
     }
+	 char letter = 'A';
+	
+	for (int i = 0; i < height; i++){
+		int position0, position1;
+		position0 = 0;
+		position1 = 0;
+		
+		for (int j = 0; j < width; j++){
+			grid[i][j] = letter;
+			 
+			position1++;
+			if (position0 + position1 > 1){
+				letter++;
+				position1 = 0;
+				if (letter > 'Z'){
+					letter = 'A';
+				}
+			}
+		}
+		
+	}
+	
+	for (int i = 0; i < height; i++){
+		for (int j = 0; j < width; j++){
+			std::swap(grid[i][j], grid[rand() % height][rand() % width]);
+		}
+	}
+	
 }
 // Destructor deletes dynamically allocated memory
 Model::~Model() {
@@ -111,15 +139,48 @@ Model::~Model() {
 // That is, is the row within the height, and is the column within the width?
 // Return whether it is or isn't.
 bool Model::valid(int row, int column) {
-    return true;
+	return ( row < height && row >= 0 && column < width && column >= 0);
 }
 bool Model::matched(int row, int column) {
     return true;
 }
 // TODO: Flip a cell
 void Model::flip(int row, int column) {
-    // If the row and column are not valid, break out and don't do anything
-    if (!valid(row, column)) { return; }
+
+	int initR, initC;
+	
+	if (!valid(row, column)) {
+		return;
+	}
+	visible[row][column] = grid[row][column];
+
+	switch (state) {
+		case INITIAL:
+			lastRow.push_back(row);
+			lastColumn.push_back(column);
+			state = FIRST;
+			break;
+		case FIRST:
+			initR = lastRow.back();
+			initC = lastColumn.back();
+			lastRow.push_back(row);
+			lastColumn.push_back(column);
+			visible[initR][initC] = grid[initR][initC];
+			visible[row][column] = grid[row][column];
+			if (visible[initR][initC] != visible[row][column]){
+				visible[initR][initC] = '*';
+				state = FIRST;
+			}
+			else{
+				state = INITIAL;
+			}
+			break;
+	}
+    
+    
+	
+	
+	
     
     // If the last selected row and column are invalid,
         // It means we're selecting the first "cell" to flip
@@ -130,9 +191,18 @@ void Model::flip(int row, int column) {
 }
 // TODO: If everything is visible, then it's game over
 bool Model::gameOver() {
-    // Hint: assume the game is over, unless it isn't
-    // Hint: Loop through the grid and see if any element is not visible
-    return false;
+	
+    bool isOver = true;
+    // Loop through the grid and see if any element is not visible
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            if (visible[i][j] == '*') {
+                isOver = false;
+            }
+        }
+    }
+    
+	return isOver;
 }
 int Model::getWidth() {
     return width;
@@ -165,10 +235,21 @@ void Controller::loop() {
     int row, col;
     while (!model->gameOver()) {
         view->show(model);
-        cout << "Enter row:    ";
-        cin >> row;
-        cout << "Enter column: ";
-        cin >> col;
+		cout << "Enter row:    ";
+		cin >> row;
+		cout << "Enter column: ";
+		cin >> col;
+		while (cin.fail()) {
+			cout << "Entry not within range!" << endl << endl;
+			cin.clear();
+			cin.ignore(10000, '\n');
+			
+			cout << "Enter row:    ";
+			cin >> row;
+			cout << "Enter column: ";
+			cin >> col;
+		}
+
         model->flip(row, col);
     }
     cout << "Hooray, you win!" << endl;
