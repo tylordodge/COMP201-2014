@@ -5,7 +5,7 @@
 
 using namespace std;
 
-enum State { INITIAL, FIRST, MATCH, NO_MATCH };
+enum State { INIT, FIRST, NO_MATCH };
 
 // To clear the screen, look up ANSI escape codes
 // Concentration game model
@@ -79,7 +79,7 @@ Model::Model(int w, int h) {
     height = h;
     lastRow;
     lastColumn;
-    state = INITIAL;
+    state = INIT;
     grid = new char*[height];
     visible = new char*[height];
     // For every row, create the array for that row
@@ -147,36 +147,55 @@ bool Model::matched(int row, int column) {
 // TODO: Flip a cell
 void Model::flip(int row, int column) {
 
-	int initR, initC;
+	int initR, initC, secR, secC;
 	
 	if (!valid(row, column)) {
 		return;
 	}
 	visible[row][column] = grid[row][column];
-
+	
+	
+	
 	switch (state) {
-		case INITIAL:
-			lastRow.push_back(row);
-			lastColumn.push_back(column);
+		case INIT:				
 			state = FIRST;
 			break;
 		case FIRST:
+			
 			initR = lastRow.back();
 			initC = lastColumn.back();
-			lastRow.push_back(row);
-			lastColumn.push_back(column);
 			visible[initR][initC] = grid[initR][initC];
-			visible[row][column] = grid[row][column];
-			if (visible[initR][initC] != visible[row][column]){
-				visible[initR][initC] = '*';
-				state = FIRST;
+			
+			if (visible[initR][initC] == visible[row][column]){
+				
+				state = INIT;
+				break;
 			}
 			else{
-				state = INITIAL;
+				state = NO_MATCH;
 			}
 			break;
+		case NO_MATCH:
+		
+			secR = lastRow.back();
+			secC = lastColumn.back();
+			lastRow.pop_back();
+			lastColumn.pop_back();
+			initR = lastRow.back();
+			initC = lastColumn.back();
+			lastRow.pop_back();
+			lastColumn.pop_back();			
+			visible[initR][initC] = '*';
+			visible[secR][secC] = '*';
+			state = FIRST;
+			break;
 	}
+	
+	lastRow.push_back(row);
+	lastColumn.push_back(column);
+	
     
+	
     
 	
 	
