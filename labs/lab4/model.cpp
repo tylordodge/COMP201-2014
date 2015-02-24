@@ -19,13 +19,16 @@ Model::Model(int w, int h) {
     char letter = 'A';
     // Guarantee pairs of characters in the grid
     for (int i = 0; i < height; i++) {
+		int pos0, pos1;
+		pos0 = 0;
+		pos1 = 0;
         for (int j = 0; j < width; j++) {
-            grid[i][j] = letter;
-            // Everything's invisible at first
+            grid[i][j] = letter;           
             visible[i][j] = '_';
-            // Every other iteration...
-            if (j % 2 == 1) {
+			pos1++;
+            if (pos0 + pos1 > 1) {
                 letter++;
+				pos1 = 0;
                 if (letter > 'Z') {
                     letter = 'A';
                 }
@@ -35,16 +38,10 @@ Model::Model(int w, int h) {
     // Seed random number generator with time
     srand(time(0));
     // Randomize
-    int otheri, otherj;
+   
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
-            // Pick a random spot in the grid
-            otheri = rand() % height;
-            otherj = rand() % width;
-            // Swap grid[i][j] with grid[otheri][otherj]
-            letter = grid[i][j];
-            grid[i][j] = grid[otheri][otherj];
-            grid[otheri][otherj] = letter;
+            swap(grid[i][j], grid[rand() % height][rand() % width]);
         }
     }
 }
@@ -70,7 +67,46 @@ bool Model::matched(int row, int column) {
 void Model::flip(int row, int column) {
     // If the row and column are not valid, break out and don't do anything
     if (!valid(row, column)) { return; }
+	
+	int initR, initC, secR, secC;
     visible[row][column] = grid[row][column];
+	switch (state) {
+		case INIT:				
+			state = FIRST;
+			break;
+		case FIRST:
+			
+			initR = lastRow.back();
+			initC = lastColumn.back();
+			visible[initR][initC] = grid[initR][initC];
+			
+			if (visible[initR][initC] == visible[row][column]){
+				
+				state = INIT;
+				break;
+			}
+			else{
+				state = NO_MATCH;
+			}
+			break;
+		case NO_MATCH:
+		
+			secR = lastRow.back();
+			secC = lastColumn.back();
+			lastRow.pop_back();
+			lastColumn.pop_back();
+			initR = lastRow.back();
+			initC = lastColumn.back();
+			lastRow.pop_back();
+			lastColumn.pop_back();			
+			visible[initR][initC] = '_';
+			visible[secR][secC] = '_';
+			state = FIRST;
+			break;
+	}
+	
+	lastRow.push_back(row);
+	lastColumn.push_back(column);
 }
 // If everything is visible, then it's game over
 bool Model::gameOver() {
