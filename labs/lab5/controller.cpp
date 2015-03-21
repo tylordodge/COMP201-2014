@@ -4,7 +4,7 @@
 using namespace std;
 
 Controller::Controller() {
-    model = new Model(8,8);
+    model = new Model(64,48);
     view = new View("Snake", 1024, 768);
 }
 
@@ -58,20 +58,3 @@ void Controller::loop() {
     SDL_Delay(3000);
 }
 
-/*
-// Show the board
-// Read in coordinates
-// Until we're done
-void Controller::loop() {
-    int row, col;
-    while (!model->gameOver()) {
-        view->show(model);
-        cout << "Enter row:    ";
-        cin >> row;
-        cout << "Enter column: ";
-        cin >> col;
-        model->flip(row, col);
-    }
-    cout << "Hooray, you win!" << endl;
-}
-*/

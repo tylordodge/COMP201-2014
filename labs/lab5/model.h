@@ -1,4 +1,5 @@
 #include <list>
+#include <vector>
 
 #ifndef _MODEL_H
 #define _MODEL_H
@@ -6,8 +7,8 @@
 enum Direction { UP, DOWN, LEFT, RIGHT, DEAD };
 
 typedef struct {
-    unsigned int x;
-    unsigned int y;
+    int x;
+    int y;
 } Coordinate;
 
 // The model manages the state of the game
@@ -25,14 +26,20 @@ public:
     bool gameOver();
     // The snake
     std::list<Coordinate> snake;
+	// The iterator
+	std::list<Coordinate>::iterator it;
     // The food
     Coordinate food;
+	//Coordinate spot
+	Coordinate spot;
     // Which way is the snake moving?
     Direction direction;
+	Direction last_d;
     // What's the width?
     int width;
     // What's the height?
     int height;
+	
 };
 
 #endif
